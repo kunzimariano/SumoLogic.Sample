@@ -27,13 +27,19 @@ namespace ConsoleTest
             while (true)
             {
                 string message = GetLogs(table);
-                if (string.IsNullOrWhiteSpace(message))
-                {
-                    Thread.Sleep(TimeSpan.FromMinutes(1));
-                    continue;
-                }
+                if (IsEmptyMessage(message)) { Sleep(); continue; }
                 StreamToUrl(message);
             }
+        }
+
+        private static void Sleep()
+        {
+            Thread.Sleep(TimeSpan.FromMinutes(1));
+        }
+
+        private static bool IsEmptyMessage(string message)
+        {
+            return string.IsNullOrWhiteSpace(message);
         }
 
         private static CloudTable GetLogsTable()
@@ -69,14 +75,19 @@ namespace ConsoleTest
         //TODO: gzip https://service.sumologic.com/ui/help/Default.htm#cshid=4036
         static void StreamToUrl(string content)
         {
-            var client = new RestClient();
-            client.BaseUrl = "https://collectors.sumologic.com";
-            var request = new RestRequest();
-            request.Resource = "receiver/v1/http/ZaVnC4dhaV1aogV4rZCv2xBccsc1PBemC6tFssqEyk2bMVkLe1_4We12sWQdqALkwWdt8ncj7NaN1OSILQMhsBPupMs7mAAgIjWDprP4GQjlciCO_17Urw==";
-            request.Method = Method.POST;
+            var client = new RestClient { BaseUrl = "https://collectors.sumologic.com" };
+            var request = new RestRequest
+            {
+                Resource = ConfigurationManager.AppSettings["SumoLogicResource"],
+                Method = Method.POST
+            };
             request.AddFile("someName", Encoding.UTF8.GetBytes(content), "someFileName");
 
-            IRestResponse response = client.Execute(request);
+            client.ExecuteAsync(request, response =>
+            {
+                Console.WriteLine("Response status: {0}", response.ResponseStatus);
+                Console.WriteLine("Response status code: {0}", response.StatusCode);
+            });
         }
     }
 }
