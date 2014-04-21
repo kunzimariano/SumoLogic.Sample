@@ -62,10 +62,10 @@ namespace ConsoleTest
             var sb = new StringBuilder();
             foreach (LogEntity entry in table.ExecuteQuery(query))
             {
-                sb.Append(entry.Message);
-                sb.Append(", ");
-                sb.Append(entry.Timestamp);
-                sb.AppendLine();
+                sb.Append(entry.Message)
+                    .Append(", ")
+                    .Append(entry.Timestamp)
+                    .AppendLine();
                 _lastQuery = entry.Timestamp;
             }
 
